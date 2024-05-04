@@ -1,1 +1,49 @@
-console.log('HELLO WORLD');
+import * as cron from 'node-cron';
+import figlet from 'figlet';
+import { StartBot, TelegramBotSingleton } from './telegram-bot';
+import { fetchAndProcessData } from './fetch-train';
+import { UserInputs } from './interfaces/UserInput';
+import express, { Request, Response } from 'express';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const app = express();
+const port = process.env.PORT || 3999; // Default to 3999 if PORT is not set in .env
+
+const userInputs: UserInputs = {};
+const bot = TelegramBotSingleton.getInstance();
+
+StartBot(bot, userInputs);
+
+cron.schedule('* * * * *', async () => {
+  for (const chatId in userInputs) {
+    const userInput = userInputs[chatId];
+    if (
+      userInput &&
+      userInput.source &&
+      userInput.destination &&
+      userInput.date
+    ) {
+      try {
+        const trainMessage = await fetchAndProcessData(userInput);
+        bot.sendMessage(chatId, trainMessage, { parse_mode: 'HTML' });
+      } catch (error) {
+        console.error('Error fetching train details:', error);
+        bot.sendMessage(
+          chatId,
+          'Error fetching train details. Please try again later.',
+        );
+      }
+    }
+  }
+});
+
+app.get('/health', (req: Request, res: Response) => {
+  res.send('Server is healthy!');
+});
+
+app.listen(port, () => {
+  console.log(figlet.textSync('TT-BOT', { horizontalLayout: 'full' }));
+  console.log(`Bot Started and Server is running on http://localhost:${port}`);
+});
