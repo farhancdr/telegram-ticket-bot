@@ -9,7 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3999; // Default to 3999 if PORT is not set in .env
+const port = process.env.PORT || 3000;
 
 const userInputs: UserInputs = {};
 const bot = TelegramBotSingleton.getInstance();
