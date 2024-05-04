@@ -1,10 +1,11 @@
 import * as cron from 'node-cron';
 import figlet from 'figlet';
-import { StartBot, TelegramBotSingleton } from './telegram-bot';
+import { StartBot } from './telegram-bot';
 import { fetchAndProcessData } from './fetch-train';
 import { UserInputs } from './interfaces/UserInput';
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
+import TelegramBot from 'node-telegram-bot-api';
 
 dotenv.config();
 
@@ -12,7 +13,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 const userInputs: UserInputs = {};
-const bot = TelegramBotSingleton.getInstance();
+const token = process.env.TELEGRAM_TOKEN;
+const bot = new TelegramBot(token, { polling: true });
 
 StartBot(bot, userInputs);
 

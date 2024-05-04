@@ -17,52 +17,8 @@ interface TelegramBotInstance {
   onMessageReceived: (callback: (msg: Message) => void) => void;
 }
 
-export class TelegramBotSingleton implements TelegramBotInstance {
-  private static instance: TelegramBotInstance | null = null;
-  private bot: TelegramBot;
-  private onMessageReceivedCallback: ((msg: Message) => void) | null = null;
-
-  private constructor(token: string) {
-    this.bot = new TelegramBot(token, { polling: true });
-
-    this.bot.on('message', (msg) => {
-      this.handleMessageReceived(msg);
-    });
-  }
-
-  public static getInstance(): TelegramBotInstance {
-    const token = process.env.TELEGRAM_TOKEN;
-    if (!token) {
-      throw new Error('BOT_TOKEN environment variable is not set.');
-    }
-
-    if (!TelegramBotSingleton.instance) {
-      TelegramBotSingleton.instance = new TelegramBotSingleton(token);
-    }
-    return TelegramBotSingleton.instance;
-  }
-
-  private handleMessageReceived = (msg: Message) => {
-    if (this.onMessageReceivedCallback) {
-      this.onMessageReceivedCallback(msg);
-    }
-  };
-
-  public sendMessage = (
-    chatId: number | string,
-    text: string,
-    options?: SendMessageOptions,
-  ): Promise<Message> => {
-    return this.bot.sendMessage(chatId, text, options);
-  };
-
-  public onMessageReceived = (callback: (msg: Message) => void) => {
-    this.onMessageReceivedCallback = callback;
-  };
-}
-
-export const StartBot = (bot: TelegramBotInstance, userInputs: UserInputs) => {
-  bot.onMessageReceived(async (msg) => {
+export const StartBot = (bot: TelegramBot, userInputs: UserInputs) => {
+  bot.on('message', async (msg) => {
     if (msg.text) {
       const chatId = msg.chat.id.toString();
       const inputMessage = msg.text.trim().toLowerCase();
