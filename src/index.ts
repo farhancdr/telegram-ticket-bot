@@ -1,6 +1,6 @@
 import * as cron from 'node-cron';
 import figlet from 'figlet';
-import { StartBot } from './telegram-bot';
+import { handleMessage } from './telegram-bot';
 import { fetchAndProcessData } from './fetch-train';
 import { UserInputs } from './interfaces/UserInput';
 import express, { Request, Response } from 'express';
@@ -15,8 +15,9 @@ const port = process.env.PORT || 3000;
 const userInputs: UserInputs = {};
 const token = process.env.TELEGRAM_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
-
-StartBot(bot, userInputs);
+bot.on('message', async (msg) => {
+  handleMessage(bot, msg, userInputs);
+});
 
 cron.schedule('* * * * *', async () => {
   for (const chatId in userInputs) {
